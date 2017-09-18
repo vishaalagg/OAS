@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Doctor profile</title>
+	<meta charset= "UTF-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  	<style type="text/css">
+  		li.a{ background-color: white; color: black; }
+  	</style>
+</head>
+<body>
+<script type="text/javascript">
+	var coo= document.cookie;
+	console.log(coo);
+	if(coo==""){
+		alert('login first');
+		document.location.href='login.html';
+	}
+	var co=coo.split('=')[0];
+	if (co != 'doctor') {
+		deleteCookie(co);
+		alert('only doctors can view this page');
+		document.location.href='home.html';
+	}
+	function createCookie(name,value,days) {
+		if (days) {
+			var date = new Date();
+			date.setTime(date.getTime()+(days*24*60*60*1000));
+			var expires = "; expires="+date.toGMTString();
+		}
+		else var expires = "";
+		document.cookie = name+"="+value+expires+"; path=/";
+	}
+
+	function deleteCookie(name){
+		createCookie(name, "", -1);
+	}
+	$(function(){
+		$('#log').click(function(){
+			coo = coo.split('=')[0];
+			console.log(coo);
+			deleteCookie(coo);
+			console.log(document.cookie);
+			document.location.href='login.html';
+		});
+	});
+</script>
+<div class="container-fluid">
+		<!--Header -->
+	<div class="jumbtron" style="background-color:purple; text-align: center; color: white; padding: 15px;">
+		<div class="row">
+			<h2 class="col-sm-8">Hospital Management</h2>
+			<ul class="nav nav-pills col-sm-4">
+				<li class="a"><a href="home.html">Home</a> </li>
+				<li class="a"><a href="javascript:void(0)" id="log">Logout</a> </li>
+				<li class='a'><a data-toggle='modal' data-target='#editDoc'>Update</a></li>
+			</ul>
+		</div> 
+	</div>
+	<br>
+	<div class="container">
+		<div class="col-sm-12 panel panel-default">
+			<div class="panel-heading">
+				<h4> Appointments </h4>
+			</div>
+			<div class="panel-body">
+				<div class="table-responsive">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Patient ID</th>
+							<th>Patient Name</th>
+							<th>Date/time</th>
+							<th>age</th>
+							<th>gender</th>
+							<th>description</th>
+						</tr>
+					</thead>
+					<tbody id="details">
+						<tr>
+						</tr>
+					</tbody>
+				</table>
+				</div>
+			</div>
+		</div>
+	<!--Edit Doctor modal-->
+<div class="modal fade" id="editDoc" role="dialog">
+	<div class="modal-dialog modal-md">
+    	<div class="modal-content">
+    		<div class="modal-header" style="background-color: purple; color: white;">
+    			<button type="button" class="close" data-dismiss="modal">X</button>
+    			Edit Doctor details
+    		</div>
+    		<div class="modal-body" style="background: #f1f1f1">
+    			<form id="form1" style="width: 80%; margin:auto;">
+					<input type="text" id="name" class="form-control" placeholder="Name" required> <br>
+					<input type="email" id="email" class="form-control" placeholder="Email" disabled><br>
+					<input type="text" id="qualification" class="form-control" placeholder="Qualification" required><br>
+					<div class="row">
+						<div class="col-xs-6 col-sm-3">
+							<input type="number" class="form-control" id="stime" min="01" max="24" placeholder="From" required>
+						</div>
+						<div class="col-xs-6 col-sm-3">
+							<input type="number" class="form-control" id="etime" min="01" max="24" placeholder="To" required>
+						</div>
+						<div class="col-sm-6">
+							<input type="password" class="form-control" id="password" placeholder="password" required>
+						</div>
+					</div><br>
+					<input type="text" id="specialization" class="form-control" placeholder="Specialization" required><br>
+					<input class="btn btn-primary pull-right" type="submit" value="Update"><br>
+				</form>
+    		</div>
+		</div>
+	</div>
+</div>
+</div>
+<script type="text/javascript">
+	$(function(){
+		var tab="";
+		function findAge(x){
+			x= x.split('-');
+			console.log(x);
+			var d= new Date();
+			var d0= parseInt(x[0]);
+			var d1= parseInt(x[1]);
+			var d2= parseInt(x[2]);
+			//console.log(d0, d1, d2);
+			var age = d.getFullYear()- d0;
+			console.log(age);
+			if(d1 > d.getMonth() ){
+				console.log('works');
+				return --age;
+			}
+			else if(parseInt(d[1])== d.getMonth()){
+				if(d2 < d.getDate()){
+					return --age;
+				}
+			}
+			else{
+				return age;
+			}
+		}
+		
+		var demail= document.cookie.split(':')[2];
+		var data = JSON.stringify({'purpose': 'getDoc', 'demail': demail});
+		$.ajax({
+			url: 'server/appointment.php',
+			type :'post',
+			data: {'myData': data},
+			success: function(data, code, xhr){
+				console.log(data);
+				var json= JSON.parse(data);
+				var len = Object.keys(json).length-2;
+				for(var i=0; i<len; i++){
+					tab += "<tr>";
+					var age= findAge(json[i].DOB);
+					tab += "<td>"+json[i].PID+"</td><td>"+json[i].pname+"</td><td>"+json[i].DT+"</td><td>"+age+"</td><td> "+json[i].gender+"</td> <td>"+json[i].comments+"</td>";
+					tab += "</tr>";
+				}
+				//console.log(tab);
+				$('#details').html(tab);
+			},
+			error: function(xhr, code, err){
+				console.log(err);
+			}
+		});
+		var data1= JSON.stringify({'request':'search', 'email': demail});
+
+		$.ajax({
+			url:'server/doctor.php',
+			type:'post',
+			data: {'myData':data1},
+			success: function(data, status, xhr){
+				console.log(data);
+				json=JSON.parse(data);
+				//console.log(json);
+				if(json.success==true){
+					console.log(json['0'].name);
+					$('#name').val(json['0'].name.toUpperCase());
+					$('#email').val(json['0'].email);
+					$('#specialization').val(json['0'].specialization.toUpperCase());
+					$('#qualification').val(json['0'].qualification);
+					$('#did').val(json['0'].DID);
+					$('#etime').val(json['0'].etime);
+					$('#stime').val(json['0'].stime);
+				}
+				else{
+					alert(json.message);
+				}
+			},
+			error: function(xhr, code, error){
+				console.log(xhr, code, error);
+			}
+		});
+		$('#form1').submit(function(e){
+		e.preventDefault();
+		var name = $('#name').val();
+		var email= $('#email').val();
+		var specialization= $('#specialization').val();
+		var stime= $('#stime').val();
+		var etime=$('#etime').val();
+		var password=$('#password').val();
+		var qualification =$('#qualification').val();
+		var dataa = JSON.stringify({'name': name, 'email': email, 'specialization': specialization, 'stime': stime, 'etime': etime, 'qualification': qualification, 'password':password, 'request': 'update'});
+		console.log(dataa);
+		$.ajax({
+			url:'server/doctor.php',
+			type:'post',
+			data: {'myData': dataa},
+			success: function(data, status, xhr){
+				//console.log(data);
+				var json=JSON.parse(data);
+				//console.log(json);
+				alert(json.message);
+				if(json.success==true){
+					location.reload();
+				}
+			},
+			error: function(xhr, code, error){
+				console.log(xhr, code, error);
+			}
+		});
+	});
+	});
+</script>
+</body>
+</html>

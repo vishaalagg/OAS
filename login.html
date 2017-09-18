@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  	<title>Login</title>
+  	<meta charset= "UTF-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body style="background-color: #c6cad1">
+<div class="container-fluid">
+  <div class="jumbtron row" style="background-color:purple; text-align: center; color: white; padding: 15px;">
+      <h2 class="col-sm-8">Hospital Management</h2>
+      <h4 class="col-sm-4"> <button class="btn btn-default" onclick= "document.location.href= 'home.html' "> Home</button></h4>
+  </div> <br>
+  <div class="col-sm-4"></div>
+  <div class="col-sm-4" style="padding: 20px; background-color: white; margin-top: 10px;">
+  <form method="post" id="form1">
+  	<div style="text-align: center; font-size: 20px;"> Sign in </div>
+  	<div class="alert alert-danger">
+      Strictly for Hospital use only !!
+  	</div> 
+    <div style="text-align: center; font-size: 15px;">
+      <input type="radio" name="type" value="doctor" checked> Doctor &nbsp; &nbsp;
+      <input type="radio" name="type" value="hospital"> Hospital
+    </div> <br>
+  	<div class="input-group ">
+      	<span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+      	<input id="email" type="text" class="form-control" name="email" placeholder="Email" required>
+    </div> <br>
+      <div class="input-group ">
+      	<span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+      	<input id="password" type="password" class="form-control" name="password" placeholder="Password" required>
+      </div> <br>
+        <div class="row">
+          <div class="col-xs-8">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox"> Remember Me
+              </label>
+            </div>
+          </div>
+          <div class="col-xs-4">
+            <input type="submit" id="submit" value="Sign In" class="btn btn-primary btn-block btn-flat">
+          </div>
+        </div>
+  </form>
+  <div id="true" style="visibility: hidden;"></div>
+  </div>
+</div>
+<script>
+  function createCookie(name,value,days) {
+    if (days) {
+      var date = new Date();
+      date.setTime(date.getTime()+(days*24*60*60*1000));
+      var expires = "; expires="+date.toGMTString();
+    }
+    else var expires = "";
+    document.cookie = name+"="+value+expires+"; path=/";
+  }
+  function deleteCookie(name){
+    createCookie(name, "", -1);
+  }
+
+  deleteCookie('hospital');
+  deleteCookie('patient');
+  deleteCookie('doctor');
+
+  $(function(){
+    $('#form1').submit(function(e){
+      e.preventDefault();
+      var type = $("input[name= 'type']:checked").val();
+      var email = $('#email').val();
+      var password = $('#password').val();
+      if(type=='hospital'){
+        if(email=='vishal@gmail.com' && password=='vishal'){
+          var val="&name:hospital&email:"+email+" ";
+          createCookie('hospital', val, 1);
+          alert('welcome');
+          document.location.href='hospital.html';
+        }
+        else{
+          alert('Incorrect details');
+        }
+      }
+        else{
+          var data=JSON.stringify({'request':'login', 'email':email, 'password':password});
+          $.ajax({
+            url:'server/doctor.php',
+            type:'post',
+            data: {'myData': data},
+            success: function(data,code, xhr){
+              console.log(data);
+              data= JSON.parse(data);
+              if(data.success==true){
+                alert(data.message);
+                var val="&name:doctor&email:"+email+" ";
+                createCookie('doctor', val, 1);
+                document.location.href='doctor.html';
+              }
+              else{
+                alert(data.message);
+                return false;
+              }
+            },
+            error: function(xhr, code, error){
+              console.log(error);
+            }
+          });
+        }
+    });
+  });
+</script>
+</body>
+</html>

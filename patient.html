@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Patient</title>
+	<meta charset= "UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<style>
+		li.a{ background-color: white; color: white; }
+		#info{display: none;}
+	</style>
+</head>
+<body style="background-color: #f1f1f1">
+<script type="text/javascript">
+	var coo= document.cookie;
+	console.log(coo);
+	if(coo==""){
+		alert('login first');
+		document.location.href='home.html';
+	}
+	var co = coo.split('=')[0];
+	if (co != 'patient') {
+		deleteCookie(co);
+		alert('Only Admin can view this page');
+		document.location.href='home.html';
+	}
+	function createCookie(name,value,days) {
+		if (days) {
+			var date = new Date();
+			date.setTime(date.getTime()+(days*24*60*60*1000));
+			var expires = "; expires="+date.toGMTString();
+		}
+		else var expires = "";
+		document.cookie = name+"="+value+expires+"; path=/";
+	}
+
+	function deleteCookie(name){
+		createCookie(name, "", -1);
+	}
+	$(function(){
+		$('#log').click(function(){
+			coo = coo.split('=')[0];
+			console.log(coo);
+			deleteCookie(coo);
+			console.log(document.cookie);
+			document.location.href='home.html';
+		});
+	});
+</script>
+<div class="container-fluid">
+		<!--Header -->
+	<div class="jumbtron" style="background-color:purple; text-align: center; color: white; padding: 15px;">
+		<div class="row">
+			<h2 class="col-sm-10">Hospital Management</h2>
+			<ul class="nav nav-pills col-sm-2">
+				<li class="a"><a href="home.html">Home</a> </li>
+				<li class="a"><a href="javascript:void(0)" id="log">Logout</a> </li>
+			</ul>
+		</div> 
+	</div>
+	<br>
+	<div class="container">
+		<div class="col-sm-7 panel panel-default">
+			<div class="panel-heading">
+				List of available doctor
+			</div>
+			<div class="panel-body">
+				<div class="table-responsive">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Doctor ID</th>
+							<th>Doctor Name</th>
+							<th>Speciality</th>
+							<th>timming</th>
+							<th>Preview</th>
+						</tr>
+					</thead>
+					<tbody id="details">
+						<tr>
+						</tr>
+					</tbody>
+				</table>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-1"></div>
+		<div class="col-sm-4 panel panel-default">
+			<div class="panel-heading">
+				Appointments
+			</div>
+			<div class="panel-body">
+				<div class="table-responsive">
+					<table class="table" style="background-color: white; border-radius: 5px;">
+						<thead>
+							<tr>
+								<th>DID</th>
+								<th>Date & Time</th>
+								<th>View</th>
+							</tr>
+						</thead>
+						<tbody id="appList">
+							<tr>
+								<td>abcdef ghi</td>
+								<td>17/5/2017, 3pm</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+function fun(id){
+	document.location.href = 'appointment.html?'+id;
+}
+function appPage(a,b){
+	console.log(a);
+	console.log(b);
+	b=b.split(',');
+	document.location.href='appointment_slip.html?DID='+b[0]+'&PID='+b[1]+'&AID='+b[2];
+}
+$(function(){
+	var tab="", app='';
+		$.ajax({
+			url:'server/doctor.php',
+			type:'get',
+			success: function(data, status, xhr){
+				//console.log(data);
+				json=JSON.parse(data);
+				//console.log(json);
+				var len = Object.keys(json).length-2;
+				for(var i=0; i<len; i++){
+					tab += "<tr>";
+					tab += "<td>"+json[i].DID+"</td><td>"+json[i].name+"</td><td>"+json[i].specialization+"</td><td>"+json[i].stime+"-"+json[i].etime+"</td>";
+					tab += "<td> <button id="+i+" onclick='fun(json[this.id].email)' class='btn btn-primary btn-sm'>view</button> </td>";
+					tab += "</tr>";
+				}
+				$('#details').html(tab);
+			},
+			error: function(xhr, code, error){
+				console.log(xhr, code, error);
+			}
+		});
+
+	var email= document.cookie.split(':')[2];
+	var dataa= JSON.stringify({'purpose':'appList', 'email':email});
+		$.ajax({
+			url:'server/appointment.php',
+			type:'post',
+			data:{'myData': dataa},
+			success: function(data, status, xhr){
+				console.log(data);
+				dat=JSON.parse(data);
+				if(dat.success==true){
+					console.log(dat);
+					var length =Object.keys(dat).length-2;
+					for(var i=0; i<length; i++){
+						app +="<tr>";
+						app +="<td>"+dat[i].DID+"</td><td>"+dat[i].DT+"</td>";
+						app +="<td><button id='"+dat[i].DID+"' name='"+dat[i].DID+","+dat[i].PID+","+dat[i].AID+"' class='btn btn-sm' onclick='appPage(this.id, this.name)'>details </button> </td>";
+						app +="</tr>";
+					}
+					$('#appList').html(app);
+				}
+				else{
+					$('#appList').html('<tr><td colspan="3">'+dat.message+'</td> </tr>');
+				}
+			},
+			error: function(xhr, code, error){
+				console.log(xhr, code, error);
+			}
+		});
+});
+</script>
+</body>
+</html>

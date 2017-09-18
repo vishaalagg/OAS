@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Reciept</title>
+	<meta charset= "UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<style>
+		.abc{font-size: 17px; padding: 5px 30px;}
+		.text{background-color: lightgray; font-size: 11px; padding: 2px 20px;}
+		.space{height: 200px; position: relative;}
+		.main{border: 1px solid black; padding: 0 10px; margin-bottom: 10px;}
+	</style>
+</head>
+<body>
+<script type="text/javascript">
+	var par= document.location.href.split('?')[1];
+	var para=par.split('&');
+	var did=para[0].split('=')[1];
+	var pid=para[1].split('=')[1];
+	var aid=para[2].split('=')[1];
+	console.log(para, did, pid, aid);
+	var data = JSON.stringify({'purpose':'slip' ,'DID': did, 'PID': pid, 'AID': aid});
+	$.ajax({
+		url:'server/book_appointment.php',
+		type:'post',
+		data: {'allData': data},
+		success: function(data, code, xhr){
+			console.log(data);
+			var json= JSON.parse(data);
+			if(json.success==true){
+				$('#name').text(json['1'].name);
+				$('#email').text(json['0'].demail);
+				$('#date').text(json['0'].bdate);
+				$('#time').text(json['0'].btime);
+				$('#pid').text(json['0'].PID);
+				$('#did').text(json['0'].DID);
+				$('#msg').text(json['0'].comments);
+				$('#aid').text(json['0'].AID);
+				$('#pemail').text(json['0'].pemail);
+			}
+		},
+		error: function(xhr, status, error){
+			console.log(error);
+		}
+	});
+function fun(){
+	function createCookie(name,value,days) {
+		if (days) {
+			var date = new Date();
+			date.setTime(date.getTime()+(days*24*60*60*1000));
+			var expires = "; expires="+date.toGMTString();
+		}
+		else var expires = "";
+		document.cookie = name+"="+value+expires+"; path=/";
+	}
+
+	function deleteCookie(name){
+		createCookie(name, "", -1);
+	}
+	deleteCookie('patient');
+	document.location= 'home.html';
+}
+</script>
+<div class="container">
+	<div class="jumbtron" style="background-color:purple; text-align: center; color: white; padding: 2px;">
+		<h3>Hospital Management</h3>
+	</div>
+	<div class="main">
+		<div class="abc">
+			<div class="row">
+				Date of Appointment: <span id="date"></span>
+			</div>
+			<div class="row">
+				Time : <span id="time"></span>
+			</div>
+			<div class="row">
+				Doctor Id : <span id="did"></span>
+			</div>
+			<div class="row">
+				Appointment Id : <span id="aid"></span>
+			</div>
+		</div>
+		<div class="text">We recommend you to visit on time, its precious for all.</div>
+		<div class="row">
+			<div class="col-sm-5"> Doctor Name: <span  id='name'></span> </div>
+			<div class="col-sm-5"> Doctor Email:	<span id='email'></span> </div>
+		</div>
+		<div class="row">
+			<div class="col-sm-5"> Patient Name:	<span id='pname'> </span></div>
+			<div class="col-sm-5"> PID: <span id='pid'></span> </div>
+		</div>
+		<div class="row">
+			<div class="col-sm-5"> Patient Email:	<span id='pemail'> </span></div>
+			
+		</div>
+		<div class="row">
+			<div class="col-sm-10">
+				Description: <span id= 'msg'></span>
+			</div>
+		</div>
+		<div class="row space">
+			<div style="position: absolute; bottom: 1px; font-size:12px; right:15px;">
+				Authority Sign and Stamp
+			</div>
+		</div>
+		
+		<br>
+	</div>
+	<div class="row pull-right">
+		<button class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
+		<button class="btn btn-default btn-sm" onclick="fun()">Exit</button>
+	</div>
+</div>
+</body>
+</html>

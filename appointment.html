@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Book Appointment</title>
+	<meta charset= "UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel = "stylesheet">
+	<script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+	<style>
+		li.a{ background-color: white; color: white; }
+		.container{line-height: 200%;}
+		.time{text-align: center; background-color: #00b400; color: white; border: 1px solid white; border-radius: 5px; padding: 5px;}
+		.time:hover, .time:active{background-color: #006600; }
+		div.active{background-color: #005500; }
+		.ui-datepicker .ui-datepicker-title select {color: #000;}
+	</style>
+</head>
+<body style="background-color: #f1f1f1">
+<script>
+	var coo= document.cookie;
+	console.log(coo);
+	if(coo==""){
+		alert('login first');
+		document.location.href='home.html';
+	}
+	else{
+		var pemail = coo.split(':')[2];
+		console.log(pemail);
+	}
+	function createCookie(name,value,days) {
+		if (days) {
+			var date = new Date();
+			date.setTime(date.getTime()+(days*24*60*60*1000));
+			var expires = "; expires="+date.toGMTString();
+		}
+		else var expires = "";
+		document.cookie = name+"="+value+expires+"; path=/";
+	}
+
+	function deleteCookie(name){
+		createCookie(name, "", -1);
+	}
+	$(function(){
+		$('#log').click(function(){
+			coo = coo.split('=')[0];
+			console.log(coo);
+			deleteCookie(coo);
+			console.log(document.cookie);
+			document.location.href='home.html';
+		});
+
+		var demail = document.location.href.split('?')[1];
+		console.log(demail);
+		var data= JSON.stringify({'request':'search', 'email': demail});
+
+		$.ajax({
+			url:'server/doctor.php',
+			type:'post',
+			data: {'myData':data},
+			success: function(data, status, xhr){
+				//console.log(data);
+				json=JSON.parse(data);
+				//console.log(json);
+				if(json.success==true){
+					console.log(json['0'].name);
+					$('#name').html(json['0'].name.toUpperCase());
+					$('#email').html(json['0'].email);
+					$('#specialization').html(json['0'].specialization.toUpperCase());
+					$('#qualification').html(json['0'].qualification);
+					$('#did').html(json['0'].DID);
+					var time ='('+ json['0'].stime+'-'+ json['0'].etime+ ')';
+					$('#timming').html(time.toUpperCase());
+				}
+			},
+			error: function(xhr, code, error){
+				console.log(xhr, code, error);
+			}
+		});
+
+		var dataa= JSON.stringify({'email': pemail});
+		console.log(dataa);
+		$.ajax({
+			url : 'server/patients_detail.php',
+			type: 'post',
+			data : {'pdata': dataa},
+			success: function(data, status, xhr){
+				console.log(data);
+				var data1= JSON.parse(data);
+				$('#pname').val(data1['0'].name);
+				$('#pemail').val(data1['0'].email);
+				$('#pid').val(data1['0'].PID);
+				$('#mobile').val(data1['0'].mobile);
+				$('#address').val(data1['0'].address);
+				$('#bgroup').val(data1['0'].bloodGroup);
+				$('#height').val(data1['0'].height);
+				$('#weight').val(data1['0'].weight);
+				$('#dob').val(data1['0'].DOB);
+				if (data1['0'].alchoholic == 1) {
+					$('#alchohol').prop('checked', true);
+				}
+				if (data1['0'].smoker == 1) {
+					$('#smoke').prop('checked', true);
+				}
+				if (data1['0'].diabetic == 1) {
+					$('#diabetic').prop('checked', true);
+				}
+				$("#gender[value="+ data1['0'].gender).prop('checked', true);
+			},
+			error: function(xhr, code, error){
+				console.log(xhr, code, error);
+				alert(error);
+			}
+		})
+	});
+</script>
+<div class="container-fluid">
+		<!--Header -->
+	<div class="jumbtron" style="background-color:purple; text-align: center; color: white; padding: 15px;">
+		<div class="row">
+			<h2 class="col-sm-10">Hospital Management</h2>
+			<ul class="nav nav-pills col-sm-2">
+				<li class="a"><a href="home.html">Home</a> </li>
+				<li class="a"><a href="javascript:void(0)" id="log">Logout</a> </li>
+			</ul>
+		</div> 
+	</div>
+	<br>
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-10 panel panel-default">
+				<div class="panel-heading">
+					<h4> Choose time and Confirm Booking</h4>
+				</div>
+				<div class="panel-body">
+					<div class="col-sm-2"><b> Name: </b></div> <div class="col-sm-4" id="name"></div> 
+					<div class="col-sm-2"><b> Email: </b></div><div class="col-sm-4" id="email"></div> 
+					<div class="col-sm-2"><b> DID: </b></div><div class="col-sm-4" id="did"></div> 
+					<div class="col-sm-2"><b> Specialization: </b></div><div class="col-sm-4" id="specialization"></div> 
+					<div class="col-sm-2"><b> Qualification:</b></div><div class="col-sm-4" id="qualification"> </div> 
+					<div class="col-sm-2"><b> Timming:</b></div> <div class="col-sm-4" id="timming"> <br></div>
+					<br>
+					<div class="col-sm-11 panel panel-default" id="time" style="margin-top:15px;">
+						<div class="panel-body" style="border-bottom: 1px solid gray;">
+							<div class="col-sm-2">Select Date</div> 
+							<div class="input-group col-sm-4">
+								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+								<input type="text" class="form-control" id="date">
+							</div>
+						</div>
+						<div class="panel-body">
+							<h4> Choose your time slot [<span id='timeslot'></span> ]</h4>
+							<div id='times'>
+								<div style="font-size: 11px; padding: 10px; background-color: cyan;">Select date to see available time slot </div>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-11 panel panel-default">
+						<div class="panel-body" style="border-bottom: 1px solid gray;">
+							<h4>Patient Details</h4> 
+						</div>
+						<div class="panel-body">
+						<form id="forms">
+							<div class="row">
+								<div class="col-sm-2">Patient Name:</div>
+								<div class="col-sm-4"><input type="text" id="pname" class="form-control" required> </div>
+								<div class="col-sm-2">Email :</div>
+								<div class="col-sm-4"><input type="email" id="pemail" class="form-control" disabled> </div> 
+							</div><br>
+							<div class="row">
+								<div class="col-sm-2">Contact No.:</div>
+								<div class="col-sm-4"><input type="text" id="mobile" class="form-control" required> </div>
+								<div class="col-sm-2">PID:</div>
+								<div class="col-sm-4"><input type="text" id="pid" class="form-control" disabled> </div>
+							</div><br>
+							<div class="row">
+								<div class="col-sm-2"> Address: </div>
+								<div class="col-sm-10"><input type="text" id="address" class="form-control" required> </div>
+							</div><br>
+							<div class="row">
+								<div class="col-sm-2">Blood group:</div>
+								<div class="col-sm-2">
+									<select class="form-control" id="bgroup" name="bgroup" style="color: gray;" required>
+    						    		<option value="">Blood Group</option>
+    						    		<option value="A-">A-</option>
+    						    		<option value="A+">A+</option>
+    				    				<option value="B-">B-</option>
+    				    				<option value="B+">B+</option>
+    						   		 	<option value="AB-">AB-</option>
+    						   		 	<option value="AB+">AB+</option>
+    								    <option value="O+">O+</option>
+    						    		<option value="O-">O-</option>
+									</select>
+								</div>
+								<div class="col-sm-2">Height:(cms)</div>
+								<div class="col-sm-2"><input type="number" id="height" class="form-control" required> </div>
+								<div class="col-sm-2">Weight:(kgs)</div>
+								<div class="col-sm-2"><input type="number" id="weight" class="form-control" required> </div>
+							</div><br>
+							<div class="row">
+								<div class="col-sm-2">Alchoholic:</div>
+								<div class="checkbox-inline col-sm-2"><input type="checkbox" id="alchohol" class="form-control"> </div>
+								<div class="col-sm-2">Smoker:</div>
+								<div class="checkbox-inline col-sm-2"><input type="checkbox" id="smoke" class="form-control"> </div>
+								<div class="col-sm-2">Diabetic:</div>
+								<div class="checkbox-inline col-sm-2"><input type="checkbox" id="diabetic" class="form-control"> </div>
+							</div><br>
+							<div class="row">
+								<div class="col-sm-2"> DOB: </div>
+								<div class="col-sm-2"><input type="text" id="dob" class="form-control" required> </div>
+								<div class="col-sm-2"> Gender:</div>
+								<div class="col-sm-6">
+								<div class="checkbox-inline form-control">
+									<input type="radio" name="gender" id="gender" value="male" required >Male &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+									<input type="radio" name="gender" id="gender" value="female" required >Female
+								</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-2"> More Details :</div>
+						<div class="col-sm-9"><textarea class="form-control" id="comments" required></textarea> </div> 
+					</div><br>
+					<input class="col-sm-offset-9 col-sm-2 btn btn-success" type="submit" id="confirm" value="Confirm">
+					</form>
+				</div> 
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+var ele="", i, time=0, j=0;
+$(function(){
+	$('#date').val('');
+	$('#date').datepicker({
+		minDate:1,
+		dateFormat: 'yy-mm-dd'
+	});
+	$('#dob').datepicker({
+		maxDate:0,
+		changeMonth: true,
+		changeYear: true,
+		dateFormat: 'yy-mm-dd',
+		yearRange: '1940:2017'
+	});
+    $('#date').on('change paste keyup', function(){
+    	$('#times').html('');
+    	$('#timeslot').html('');
+		var date= $('#date').val();
+		console.log(date);
+		if(date==''){
+			return false;
+		}
+		else{
+			var mail = $('#email').text();
+			console.log(mail);
+			var data = JSON.stringify({'purpose': 'getTime' ,'email': mail, 'date': date});
+			$.ajax({
+				url: 'server/appointment.php',
+				data : {'myData': data},
+				type: 'post',
+				success: function(data, status, xhr){
+					console.log(data);
+					var jsn= JSON.parse(data);
+					var length= Object.keys(jsn).length;
+					console.log(length);
+					ele='';
+					for(i=0; i<length; i++){
+						if(jsn[i]==undefined){
+							ele += "<div class='col-sm-3 time' style='background:red;'>Booked </div>";
+							j++;
+						}
+						else{
+							ele += '<div class="col-sm-3 time" id='+i+' onclick="func(this.innerText, this.id)">'+ jsn[i] +'</div>';
+						}
+					}
+					for(; j>0; j--){
+						ele += '<div class="col-sm-3 time" id='+i+' onclick="func(this.innerText, this.id)">'+ jsn[i] +'</div>';
+						i++;
+					}
+					$('#times').html(ele);
+					console.log(time);
+				},
+				error: function(xhr, code, error){
+					console.log(error);
+				}
+			});
+		}
+	});
+
+	$('#forms').submit(function(e){
+		e.preventDefault();
+		var docName= $('#name').text();
+		var docEmail= $('#email').text();
+		var docID= $('#did').text();
+		var appDate= $('#date').val();
+		var appTime= $('#timeslot').text();
+		var patEmail= $('#pemail').val();
+		var patID= $('#pid').val();
+		var patName= $('#pname').val();
+		var patEmail= $('#pemail').val();
+		var patMobile = $('#mobile').val();
+		var patAddress = $('#address').val();
+		var patBlood= $('#bgroup').val();
+		var patHeight= $('#height').val();
+		var patWeight= $('#weight').val();
+		var patDOB= $('#dob').val();
+		var smk = $('#smoke').is(':checked');
+		var alc= $('#alchohol').is(':checked');
+		var dia= $('#diabetic').is(':checked');
+		var gen= $('#gender:checked').val();
+		var comments = $('#comments').val();
+		console.log(smk, alc, dia);
+		if(appDate=='' || appTime==''){
+			alert('date and time are must');
+			return false;
+		}
+		else{
+			var allData = JSON.stringify({'purpose':'booking', 'dname': docName, 'demail': docEmail, 'DID': docID, 'appDate': appDate, 'appTime': appTime, 'pemail':patEmail, 'PID': patID, 'pname': patName, 'mobile': patMobile, 'address': patAddress, 'bgroup': patBlood, 'height': patHeight, 'weight': patWeight, 'dob':patDOB, 'smoker': smk, 'alchohol': alc, 'diabetic': dia, 'gender': gen, 'comments': comments});
+			console.log(allData);
+			$.ajax({
+				url:'server/book_appointment.php',
+				type:'post',
+				data: {'allData': allData},
+				success: function(data, status, xhr){
+					console.log(data);
+					var js= JSON.parse(data);
+					alert(js.message);
+					if(js.success==true){
+						document.location.href='appointment_slip.html?DID='+docID+'&PID='+patID+'&AID='+js['0'].AID;
+					}
+			},
+			error: function(xhr, code, error){
+				console.log(error);
+			}
+		});
+		}
+	});
+});
+	function func(x, id){
+		console.log(x, id);
+		$('#timeslot').text(x);
+		$('#timeslot').css('background-color','cyan');
+		setTimeout(function(){
+			$('#timeslot').css('background-color', '')
+		}, 3000);
+	}
+
+</script>
+</body>
+</html>
